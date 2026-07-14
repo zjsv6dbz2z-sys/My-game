@@ -117,8 +117,14 @@
     <div class="option-container" id="options-box"></div>
 </div>
 
+<!-- ========================================== -->
+<!-- 1. 在這裡引入我們剛建立的 16 戰場資料庫檔案 -->
+<script src="world.js"></script>
+<!-- ========================================== -->
+
 <script>
     // 【純文字 JSON 區塊：核心戰場資料庫】
+    // 註：這段舊的內部資料庫我們暫時保留，下一步我們就可以將它替換成讀取 world.js 的資料了！
     const battlefieldsDB = {
         "BF_04": {
             name: "風蝕刀鋒峽谷 (風之墓)",
@@ -158,6 +164,7 @@
     }
 
     function init() {
+        // 可以在此處測試 world.js 是否載入成功： console.log(worldData);
         const box = document.getElementById('options-box'); box.innerHTML = "";
         for (let key in origins) {
             let btn = document.createElement('button'); btn.className = "option-btn";
