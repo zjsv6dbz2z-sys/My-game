@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鐵馭核心：機甲對抗 v3.2</title>
+    <style>
+        body {
+            background-color: #0b0f12;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: #12181f;
+            border: 2px solid #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .screen-header {
+            text-align: center;
+            border-bottom: 2px dashed #00ff66;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .viewport {
+            width: 100%;
+            height: 180px;
+            background-color: #1a232e;
+            border: 1px solid #00ff66;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .viewport::before {
+            content: "【 戰術雷達成像 (HUD) 】";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+            color: rgba(0, 255, 102, 0.5);
+        }
+        .mecha-sprite {
+            width: 100px;
+            height: 100px;
+            background: url('mecha.png') no-repeat center/contain;
+            filter: drop-shadow(0 0 8px #00ff66);
+            transition: transform 0.1s ease;
+        }
+        .shake {
+            animation: shakeAnim 0.15s ease-in-out 2;
+        }
+        @keyframes shakeAnim {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-8px, 5px) rotate(-3deg); }
+            75% { transform: translate(8px, -5px) rotate(3deg); }
+            100% { transform: translate(0, 0); }
+        }
+        .status-box {
+            font-size: 13px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .bar {
+            background: #23303e;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+        .bar-fill {
+            height: 100%;
+            background: #00ff66;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        .bar-heat {
+            height: 100%;
+            background: #ff3333;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .log-box {
+            height: 150px;
+            background: #06090d;
+            border: 1px solid #23303e;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .log-entry { margin-bottom: 8px; }
+        .system-text { color: #888888; }
+        .danger-text { color: #ff3333; }
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        button {
+            background: #1a232e;
+            border: 1px solid #00ff66;
+            color: #00ff66;
+            padding: 10px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #00ff66;
+            color: #12181f;
+            box-shadow: 0 0 8px #00ff66;
+        }
+        button:disabled {
+            border-color: #334433;
+            color: #334433;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="screen-header">
+        <h3 style="margin: 0; letter-spacing: 2px;">TACTICAL SYSTEM v3.2</h3>
+        <span style="font-size: 11px; opacity: 0.7;">ENGINE: ACTIVE | MODE: B</span>
+    </div>
+
+    <div class="viewport" id="viewport">
+        <div class="mecha-sprite" id="mecha"></div>
+    </div>
+
+    <div class="status-box">
+        <div><strong>機體：</strong>鐵騎-MX ⚙️</div>
+        <div>裝甲結構 (AP): <span id="ap-val">100</span>%</div>
+        <div class="bar"><div class="bar-fill" id="ap-bar"></div></div>
+        
+        <div>核心溫度 (HEAT): <span id="heat-val">0</span>°C</div>
+        <div class="bar"><div class="bar-heat" id="heat-bar"></div></div>
+        
+        <div id="stat-line" class="system-text">
+            彈藥: 30mm機砲 [32/32] | 噴射燃料: 100%
+        </div>
+    </div>
+
+    <div class="log-box" id="log-box">
+        <div class="log-entry system-text">>>> [系統初始化] 鐵馭，神經連結已建立。</div>
+        <div class="log-entry">>>> 警告：前方120米探測到企業敵對機甲「重裝獵犬」訊號。</div>
+    </div>
+
+    <div class="control-grid">
+        <button onclick="action('fire')">💥 30mm機砲射擊</button>
+        <button onclick="action('dodge')">💨 噴射推進閃避</button>
+        <button onclick="action('vent')">❄️ 強制冷卻散熱</button>
+        <button onclick="action('repair')">🔧 緊急奈米維修</button>
+    </div>
+</div>
+
+<script>
+    const rTable = [12, 5, 19, 3, 8, 14, 0, 17, 9, 2, 11, 16, 6, 13, 1, 18, 4, 10, 15, 7, 3, 16, 8, 19, 1, 12, 6, 0, 14, 9, 17, 4, 11, 2, 15, 7, 13, 18, 5, 10, 9, 0, 15, 6, 18, 2, 13, 7, 19, 11, 4, 16, 1, 14, 8, 3, 17, 5, 12, 10];
+    let pr = 27;
+
+    let state = {
+        ap: 100,
+        heat: 0,
+        ammo: 32,
+        fuel: 100
+    };
+
+    function addLog(text, type = '') {
+        const logBox = document.getElementById('log-box');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry ' + type;
+        entry.innerHTML = '>>> ' + text;
+        logBox.appendChild(entry);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function rollCheck(modifier) {
+        pr = (pr + modifier) % 60;
+        return rTable[pr];
+    }
+
+    function updateUI() {
+        document.getElementById('ap-val').innerText = state.ap;
+        document.getElementById('ap-bar').style.width = state.ap + '%';
+        document.getElementById('heat-val').innerText = state.heat;
+        document.getElementById('heat-bar').style.width = state.heat + '%';
+        document.getElementById('stat-line').innerText = `彈藥: 30mm機砲 [${state.ammo}/32] | 噴射燃料: ${state.fuel}%`;
+    }
+
+    function action(actType) {
+        const mecha = document.getElementById('mecha');
+        
+        if (actType === 'fire') {
+            if (state.ammo <= 0) {
+                addLog("警告：主武器彈藥已耗盡！", "danger-text");
+                return;
+            }
+            if (state.heat >= 90) {
+                addLog("系統鎖定：機體過熱，無法射擊！請先散熱。", "danger-text");
+                return;
+            }
+
+            mecha.classList.add('shake');
+            setTimeout(() => mecha.classList.remove('shake'), 150);
+
+            let roll = rollCheck(3);
+            state.ammo -= 4;
+            state.heat += 20;
+
+            if (roll > 8) {
+                addLog(`機砲連射！[檢定成功:${roll}] 彈藥命中「重裝獵犬」，造成裝甲崩解！`);
+            } else {
+                addLog(`火控被干擾！[檢定失敗:${roll}] 彈道偏移，子彈擦過對方護甲，熱能上升。`, 'system-text');
+            }
+
+            setTimeout(enemyCounter, 800);
+        } 
+        else if (actType === 'dodge') {
+            if (state.fuel <= 0) {
+                addLog("燃料不足，無法啟用噴射推進器！", "danger-text");
+                return;
+            }
+            state.fuel -= 25;
+            state.heat += 15;
+            addLog("背部推進器轟鳴！機體向側翼高速滑行，進入迴避姿勢。");
+        } 
+        else if (actType === 'vent') {
+            state.heat = Math.max(0, state.heat - 40);
+            addLog("冷卻閥強行開啟，高溫蒸汽從機身裝甲縫隙中噴出，核心溫度大幅下降。");
+        } 
+        else if (actType === 'repair') {
+            if (state.ap >= 100) {
+                addLog("裝甲結構完整，無需奈米修復。", "system-text");
+                return;
+            }
+            state.ap = Math.min(100, state.ap + 25);
+            addLog("奈米修復群啟動。液態金屬在裝甲受損處蠕動，裝甲外殼得到修補。");
+        }
+
+        updateUI();
+    }
+
+    function enemyCounter() {
+        let dmgRoll = rollCheck(5);
+        if (dmgRoll > 12) {
+            let dmg = 15;
+            state.ap = Math.max(0, state.ap - dmg);
+            addLog(`警告：遭遇敵方反擊！「重裝獵犬」熱能射線命中我方胸甲！裝甲結構值損耗 ${dmg}%`, 'danger-text');
+            document.getElementById('viewport').classList.add('shake');
+            setTimeout(() => document.getElementById('viewport').classList.remove('shake'), 200);
+        } else {
+            addLog("「重裝獵犬」試圖鎖定你，但被你干擾了鎖定信號，攻擊未命中。", 'system-text');
+        }
+        updateUI();
+    }
+</script>
+
+</body>
+</html>
