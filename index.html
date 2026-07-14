@@ -6,16 +6,19 @@
     <title>機甲風暴 MUD Ultimate v3.5</title>
     <style>
         :root {
-            --neon-green: #00ff66;
-            --neon-glow: rgba(0, 255, 102, 0.25);
-            --dark-bg: #030608;
-            --panel-bg: #070f14;
-            --danger-red: #ff3333;
-            --amber: #ffb000;
+            /* 286 經典綠磷光 */
+            --neon-green: #33ff33;
+            --neon-glow: rgba(51, 255, 51, 0.2);
+            --dark-bg: #020502;
+            --panel-bg: #050a05;
+            --danger-red: #ff2222;
+            --amber: #ffaa00;
         }
 
         body {
             background-color: var(--dark-bg);
+            /* 286 CRT 螢幕中心微光暈效果，完全不用圖片 */
+            background-image: radial-gradient(circle, #0c200c 0%, #020502 80%);
             color: var(--neon-green);
             font-family: 'Courier New', Courier, monospace, "Microsoft JhengHei";
             margin: 0;
@@ -26,27 +29,39 @@
             overflow-x: hidden;
         }
 
-        /* CRT Scanlines */
+        /* 286 螢幕慢速掃描線與低頻閃爍效果 */
         body::before {
             content: " ";
             display: block;
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
             z-index: 999;
-            background-size: 100% 4px, 6px 100%;
+            background-size: 100% 3px;
             pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* 模擬老舊硬體的微幅畫面閃爍 */
+        .crt-flicker {
+            animation: crt-flicker-anim 0.15s infinite;
+        }
+        @keyframes crt-flicker-anim {
+            0% { opacity: 0.99; }
+            50% { opacity: 0.97; }
+            100% { opacity: 0.99; }
         }
 
         .game-container {
             width: 100%;
             max-width: 550px;
-            background: var(--panel-bg);
+            background: rgba(5, 10, 5, 0.9);
             border: 2px solid var(--neon-green);
-            box-shadow: 0 0 15px var(--neon-glow);
+            box-shadow: inset 0 0 15px rgba(51, 255, 51, 0.3), 0 0 20px var(--neon-glow);
             padding: 12px;
             box-sizing: border-box;
-            border-radius: 4px;
+            border-radius: 6px;
+            position: relative;
         }
 
         .screen-header {
@@ -60,11 +75,11 @@
             letter-spacing: 1px;
         }
 
-        /* 頂部雷達觀測視窗 */
+        /* 286 綠單色雷達 */
         .viewport {
             width: 100%;
             height: 140px;
-            background-color: #010304;
+            background-color: #010301;
             border: 1px solid var(--neon-green);
             margin-bottom: 10px;
             position: relative;
@@ -76,8 +91,8 @@
             width: 100%;
             height: 100%;
             background-image: 
-                linear-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 102, 0.08) 1px, transparent 1px);
+                linear-gradient(rgba(51, 255, 51, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(51, 255, 51, 0.08) 1px, transparent 1px);
             background-size: 15px 15px;
             background-position: center;
         }
@@ -87,8 +102,8 @@
             width: 200%;
             height: 200%;
             top: -50%; left: -50%;
-            background: conic-gradient(from 0deg, rgba(0, 255, 102, 0.12) 0deg, transparent 90deg);
-            animation: sweep 5s linear infinite;
+            background: conic-gradient(from 0deg, rgba(51, 255, 51, 0.12) 0deg, transparent 90deg);
+            animation: sweep 6s linear infinite;
             transform-origin: center;
             pointer-events: none;
         }
@@ -96,29 +111,31 @@
             from { transform: rotate(0deg); } to { transform: rotate(360deg); }
         }
 
-        /* 終端顯示主螢幕 (故事文本與選項) */
+        /* 終端顯示主螢幕 */
         .story-screen {
             height: 240px;
-            background: #020406;
-            border: 1px solid rgba(0, 255, 102, 0.3);
+            background: #010201;
+            border: 1px solid rgba(51, 255, 51, 0.4);
             padding: 10px;
             overflow-y: auto;
             font-size: 12px;
             line-height: 1.6;
             margin-bottom: 10px;
             box-sizing: border-box;
+            box-shadow: inset 0 0 10px rgba(51, 255, 51, 0.2);
         }
 
         .story-text {
             margin-bottom: 12px;
             white-space: pre-wrap;
+            text-shadow: 0 0 2px var(--neon-green);
         }
 
         /* 狀態監控面板 */
         .status-panel {
             font-size: 11px;
-            background: rgba(0,0,0,0.5);
-            border: 1px dashed rgba(0, 255, 102, 0.3);
+            background: rgba(0,0,0,0.4);
+            border: 1px dashed rgba(51, 255, 51, 0.4);
             padding: 8px;
             margin-bottom: 10px;
             display: grid;
@@ -129,9 +146,10 @@
         .status-item {
             display: flex;
             justify-content: space-between;
+            text-shadow: 0 0 2px var(--neon-green);
         }
 
-        /* 控制按鈕與出身選擇 */
+        /* 控制按鈕 */
         .option-container {
             display: grid;
             grid-template-columns: 1fr;
@@ -139,7 +157,7 @@
         }
 
         .option-btn {
-            background: #050b0f;
+            background: #020502;
             border: 1px solid var(--neon-green);
             color: var(--neon-green);
             padding: 10px;
@@ -148,40 +166,36 @@
             text-align: left;
             cursor: pointer;
             transition: all 0.15s;
+            text-shadow: 0 0 2px var(--neon-green);
         }
 
         .option-btn:hover {
             background: var(--neon-green);
-            color: var(--dark-bg);
+            color: #000;
             box-shadow: 0 0 10px var(--neon-green);
+            text-shadow: none;
         }
 
-        .option-btn:disabled {
-            border-color: #1a3322;
-            color: #1a3322;
-            cursor: not-allowed;
-        }
-
-        .blink { animation: blinkAnim 1.5s infinite; }
+        .blink { animation: blinkAnim 1.8s infinite; }
         @keyframes blinkAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
-<body>
+<body class="crt-flicker">
 
 <div class="game-container">
     <div class="screen-header">
-        <span>[HEPHAESTUS TERMINAL v3.5]</span>
-        <span class="blink" style="color: var(--amber);">● WAITING INITIATION</span>
+        <span>[HEPHAESTUS 286-XT TERMINAL]</span>
+        <span class="blink" style="color: var(--amber);">● ONLINE</span>
     </div>
 
-    <!-- 雷達雷達 -->
+    <!-- 雷達視窗 -->
     <div class="viewport">
         <div class="radar-grid"></div>
         <div class="radar-sweep"></div>
-        <div style="position: absolute; top: 10px; left: 10px; font-size: 10px; color: rgba(0,255,102,0.5);">GRID: CENTRAL-SCAR</div>
+        <div style="position: absolute; top: 10px; left: 10px; font-size: 10px; color: rgba(51,255,51,0.5);">GRID: CENTRAL-SCAR</div>
     </div>
 
-    <!-- 儀表狀態 (解鎖後顯示) -->
+    <!-- 儀表狀態 -->
     <div class="status-panel" id="status-panel" style="display: none;">
         <div class="status-item"><span>PILOT:</span><span id="p-name">--</span></div>
         <div class="status-item"><span>MECHA:</span><span id="p-mecha">--</span></div>
@@ -193,18 +207,16 @@
 
     <!-- 主劇情/文本輸出 -->
     <div class="story-screen" id="story-screen">
-        <div class="story-text" id="story-content">>>> [系統連結成功]
-歡迎來到赫菲斯托斯。這是一顆直徑為地球 1.7 倍、無海洋、表面完全被鐵鏽覆蓋的荒蕪星球。
+        <div class="story-text" id="story-content">>>> [286-BOOT SEQUENCE SUCCESSFUL]
+RAM CHECK: 640KB OK
+DISPLAY ADAPTER: MDA MONOCHROME ACTIVE
 
-東方聯邦與西方帝國將這裡撕裂成兩半，而你，是一名 16 歲的見習傭兵，正站在兩大勢力的交界緩衝區——「中央蝕痕」的錨點站鋼鐵契約公會大廳中。
-
-在踏上這條鋼鐵與鮮血鋪成的道路前，請先載入你的**出身設定**與**駕駛登記**。</div>
+歡迎來到赫菲斯托斯。這是一顆表面完全被鐵鏽覆蓋的荒蕪星球。
+在踏上這條鋼鐵與鮮血鋪成的道路前，請先載入你的**出身設定**。</div>
     </div>
 
     <!-- 交互選項 -->
-    <div class="option-container" id="options-box">
-        <!-- 初始出身選項由 JS 動態生成 -->
-    </div>
+    <div class="option-container" id="options-box"></div>
 </div>
 
 <script>
@@ -241,7 +253,6 @@
         document.getElementById('story-screen').scrollTop = document.getElementById('story-screen').scrollHeight;
     }
 
-    // 初始化出身選擇按鈕
     function initOriginSelection() {
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -249,7 +260,7 @@
         for (let key in origins) {
             let btn = document.createElement('button');
             btn.className = "option-btn";
-            btn.innerHTML = `⚙️ 選擇 ${origins[key].name} (初始機: ${origins[key].mecha})`;
+            btn.innerHTML = `⚙️ LOAD ${origins[key].name} (MECHA: ${origins[key].mecha})`;
             btn.onclick = () => confirmOrigin(key);
             box.appendChild(btn);
         }
@@ -264,7 +275,6 @@
         if (!pilotName || pilotName.trim() === "") pilotName = "Pilot_No_Name";
         player.name = pilotName;
 
-        // 解鎖並更新狀態列
         document.getElementById('status-panel').style.display = "grid";
         document.getElementById('p-name').innerText = player.name;
         document.getElementById('p-mecha').innerText = player.mecha;
@@ -284,7 +294,7 @@
 資產：${player.cash} Credits
 特徵描述：${player.origin.desc}
 
-你站在鋼鐵契約公會大廳的中型終端機前。大廳四周坐滿了形形色色的武裝傭兵與拾荒客，背景充斥著散熱氣閥的排氣聲。終端螢幕上刷新了三個最新的見習合約（任務）：`);
+你站在鋼鐵契約公會大廳的中型終端機前。終端螢幕上刷新了三個最新的見習合約（任務）：`);
 
         const box = document.getElementById('options-box');
         box.innerHTML = `
@@ -299,10 +309,7 @@
         if (mId === 1) {
             writeStory(`>>> 【任務啟動：遺蹟護衛】
 你駕駛著【${player.mecha}】護送一支泛亞重工的考古小組深入「中央蝕痕」的舊城區。
-一路上風沙漫天，當穿過一處坍塌的立交橋時，雷達突然發出警報！
-兩台自由旅團的輕型掠奪者機甲「街犬型」從瓦礫堆中衝了出來！
-
-你立刻推動操縱桿，切入戰鬥姿態。`);
+雷達突然發出警報！兩台自由旅團的輕型掠奪者機甲「街犬型」從瓦礫堆中衝了出來！`);
             
             const box = document.getElementById('options-box');
             box.innerHTML = `
@@ -311,9 +318,7 @@
             `;
         } else if (mId === 2) {
             writeStory(`>>> 【任務啟動：鏽蝕礦道清理】
-你接下了清理廢棄地熱礦道內「野生自動防衛砲塔」的委託。
-黑暗窄小的通道限制了你的迴避空間，環境溫度正在不斷攀升，警報聲在駕駛艙內迴盪。
-前方轉角處，三座 50mm 雙聯裝實彈防衛砲塔正在偏轉槍管！`);
+廢棄地熱礦道內「野生自動防衛砲塔」正在偏轉槍管！`);
 
             const box = document.getElementById('options-box');
             box.innerHTML = `
@@ -326,8 +331,7 @@
                 return;
             }
             writeStory(`>>> 【任務啟動：偵察網干擾】
-你潛入聯邦邊境，試圖破壞辰曜系統部署的干擾信標。
-天空中，一艘聯邦輕巡洋艦正在執行雷達掃描，一旦被照射，你將面臨毀滅性的空中打擊！`);
+你潛入聯邦邊境，試圖破壞辰曜系統部署的干擾信標。`);
 
             const box = document.getElementById('options-box');
             box.innerHTML = `
@@ -338,12 +342,11 @@
     }
 
     function combatOutcome(isAggressive, reward, mId) {
-        let success = Math.random() > 0.35; // 隨機裁定
+        let success = Math.random() > 0.35;
         if (success) {
             player.cash += reward;
             document.getElementById('p-cash').innerText = player.cash;
             writeStory(`>>> 【戰術勝利】
-依靠卓越的機體性能與你冷静的判斷，戰況完全在你的掌控之中！
 目標被成功壓制，你順利完成了這項契約任務。
 
 獲得報酬：+${reward} Credits！獲得公會信譽評分。`);
@@ -352,10 +355,8 @@
             player.cash = Math.max(0, player.cash - penalty);
             document.getElementById('p-cash').innerText = player.cash;
             writeStory(`>>> 【戰術失誤 / 撤退確認】
-戰場環境極其惡劣！你遭遇了預料之外的頑強抵抗，機體受創。
-在系統發出核心熔毀警告前，你不得不啟動緊急煙幕彈掩護撤退。
-
-任務失敗。你支付了維修費用：-${penalty} Credits。`, "danger-text");
+戰場環境極其惡劣！機體受創，任務失敗。
+你支付了維修費用：-${penalty} Credits。`);
         }
 
         const box = document.getElementById('options-box');
@@ -364,8 +365,7 @@
 
     function goGarage() {
         writeStory(`>>> 【整備聖殿 (聖殿級工房)】
-高大的機械吊臂正在緩緩移動，為你的【${player.mecha}】進行維護。
-在這裡，你可以使用資金來保養零件、重新裝填彈藥或為機體升級。`);
+高大的機械吊臂正在緩緩移動，為你的【${player.mecha}】進行維護。`);
 
         const box = document.getElementById('options-box');
         box.innerHTML = `
@@ -377,7 +377,7 @@
 
     function buyService(type, cost) {
         if (player.cash < cost) {
-            alert("資金不足！無法支付維護費用。");
+            alert("資金不足！");
             return;
         }
         player.cash -= cost;
@@ -385,12 +385,11 @@
         if (type === 'repair') {
             writeStory(`>>> 【整備完畢】 吊臂完成校準，你的外部裝甲結構完全重組。`);
         } else {
-            writeStory(`>>> 【補給完畢】 彈藥艙與反應爐已重新充能完畢，目前狀態：滿載。`);
+            writeStory(`>>> 【補給完畢】 彈藥艙與反應爐已重新充能完畢。`);
         }
         goGarage();
     }
 
-    // 啟動
     window.onload = initOriginSelection;
 </script>
 
