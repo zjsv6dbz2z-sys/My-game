@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>機甲風暴 MUD v3.8 [激戰持久版]</title>
+    <title>機甲風暴 MUD v4.0 [戰場引擎版]</title>
     <style>
         :root {
             --neon-green: #33ff33;
             --neon-glow: rgba(51, 255, 51, 0.25);
             --dark-bg: #020502;
-            --panel-bg: #050a05;
             --danger-red: #ff2222;
             --amber: #ffaa00;
         }
@@ -19,190 +18,73 @@
             background-image: radial-gradient(circle, #0c200c 0%, #020502 80%);
             color: var(--neon-green);
             font-family: 'Courier New', Courier, monospace, "Microsoft JhengHei";
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
+            margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         body::before {
-            content: " ";
-            display: block;
-            position: fixed;
+            content: " "; display: block; position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
-            z-index: 999;
-            background-size: 100% 3px;
-            pointer-events: none;
-            opacity: 0.8;
+            z-index: 999; background-size: 100% 3px; pointer-events: none; opacity: 0.8;
         }
 
-        .crt-flicker {
-            animation: crt-flicker-anim 0.15s infinite;
-        }
-        @keyframes crt-flicker-anim {
-            0% { opacity: 0.99; }
-            50% { opacity: 0.97; }
-            100% { opacity: 0.99; }
-        }
+        .crt-flicker { animation: crt-flicker-anim 0.15s infinite; }
+        @keyframes crt-flicker-anim { 0%, 100% { opacity: 0.99; } 50% { opacity: 0.97; } }
 
         .game-container {
-            width: 100%;
-            max-width: 550px;
+            width: 100%; max-width: 550px;
             background: rgba(5, 10, 5, 0.9);
             border: 2px solid var(--neon-green);
-            box-shadow: inset 0 0 15px rgba(51, 255, 51, 0.3), 0 0 20px var(--neon-glow);
-            padding: 12px;
-            box-sizing: border-box;
-            border-radius: 6px;
+            box-shadow: inset 0 0 15px rgba(51, 255, 51, 0.3);
+            padding: 12px; box-sizing: border-box; border-radius: 6px;
         }
 
-        /* 震動受擊動畫 */
-        .shake {
-            animation: shakeAnim 0.3s ease-in-out;
-        }
+        .shake { animation: shakeAnim 0.3s ease-in-out; }
         @keyframes shakeAnim {
             0%, 100% { transform: translate(0, 0); }
-            20% { transform: translate(-6px, 5px) rotate(-1deg); }
-            40% { transform: translate(6px, -5px) rotate(1deg); }
-            60% { transform: translate(-5px, -3px); }
-            80% { transform: translate(5px, 3px); }
+            25% { transform: translate(-4px, 3px); }
+            50% { transform: translate(4px, -3px); }
+            75% { transform: translate(-3px, -2px); }
         }
 
         .screen-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between;
             border-bottom: 2px solid var(--neon-green);
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-            font-size: 11px;
-            letter-spacing: 1px;
+            padding-bottom: 6px; margin-bottom: 10px; font-size: 11px;
         }
 
-        /* 戰術雷達 */
         .viewport {
-            width: 100%;
-            height: 120px;
-            background-color: #010301;
-            border: 1px solid var(--neon-green);
-            margin-bottom: 10px;
-            position: relative;
-            overflow: hidden;
+            width: 100%; height: 120px; background-color: #010301;
+            border: 1px dashed var(--neon-green); margin-bottom: 10px;
+            position: relative; overflow: hidden;
         }
-
-        .radar-grid {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(51, 255, 51, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(51, 255, 51, 0.08) 1px, transparent 1px);
-            background-size: 15px 15px;
-            background-position: center;
-        }
-
+        
         .radar-pulse {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            border: 1px solid var(--neon-green);
-            border-radius: 50%;
-            width: 10px; height: 10px;
-            animation: pulse-anim 3s infinite linear;
-            pointer-events: none;
-            box-shadow: 0 0 8px var(--neon-green);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            border: 1px solid var(--neon-green); border-radius: 50%;
+            width: 10px; height: 10px; animation: pulse-anim 3s infinite linear; pointer-events: none;
         }
         .pulse-2 { animation-delay: 1.5s; }
-        @keyframes pulse-anim {
-            0% { width: 0px; height: 0px; opacity: 0.8; }
-            100% { width: 220px; height: 220px; opacity: 0; }
-        }
+        @keyframes pulse-anim { 0% { width: 0; height: 0; opacity: 0.8; } 100% { width: 200px; height: 200px; opacity: 0; } }
 
-        /* 持久引擎狀態塊 */
         .status-block {
-            font-size: 10px;
-            background: rgba(0,0,0,0.5);
+            font-size: 10px; background: rgba(0,0,0,0.5);
             border: 1px dashed rgba(51, 255, 51, 0.4);
-            padding: 8px;
-            margin-bottom: 10px;
-            line-height: 1.4;
+            padding: 8px; margin-bottom: 10px; line-height: 1.4;
         }
-
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(51, 255, 51, 0.15);
-            padding: 3px 0;
-        }
+        .status-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(51, 255, 51, 0.15); padding: 3px 0; }
 
         .story-screen {
-            height: 240px;
-            background: #010201;
-            border: 1px solid rgba(51, 255, 51, 0.4);
-            padding: 10px;
-            overflow-y: auto;
-            font-size: 11px;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            box-sizing: border-box;
+            height: 240px; background: #010201; border: 1px solid rgba(51,255,51,0.4);
+            padding: 10px; overflow-y: auto; font-size: 11px; line-height: 1.6; margin-bottom: 10px;
         }
-
-        .story-text {
-            margin-bottom: 12px;
-            white-space: pre-wrap;
-            text-shadow: 0 0 2px var(--neon-green);
-        }
-
-        .option-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 6px;
-        }
-
+        .option-container { display: grid; grid-template-columns: 1fr; gap: 6px; }
         .option-btn {
-            background: #020502;
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            padding: 9px;
-            font-family: inherit;
-            font-size: 11px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-shadow: 0 0 2px var(--neon-green);
+            background: #020502; border: 1px solid var(--neon-green); color: var(--neon-green);
+            padding: 9px; font-family: inherit; font-size: 11px; text-align: left; cursor: pointer;
         }
-
-        .option-btn:hover {
-            background: var(--neon-green);
-            color: #000;
-            box-shadow: 0 0 8px var(--neon-green);
-            text-shadow: none;
-        }
-
-        .engine-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        .tab-btn {
-            flex: 1;
-            background: #112211;
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            font-size: 9px;
-            padding: 4px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .tab-btn.active {
-            background: var(--neon-green);
-            color: #000;
-            font-weight: bold;
-        }
-
+        .option-btn:hover { background: var(--neon-green); color: #000; }
         .blink { animation: blinkAnim 1.8s infinite; }
         @keyframes blinkAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
@@ -211,410 +93,151 @@
 
 <div class="game-container" id="terminal-body">
     <div class="screen-header">
-        <span>[HEPHAESTUS ENGINE v3.8]</span>
-        <span class="blink" style="color: var(--amber);" id="engine-live">● B-MODE READY</span>
+        <span>[HEPHAESTUS BATTLEFIELD ENGINE v4.0]</span>
+        <span class="blink" style="color: var(--amber);">● TACTICAL LINK ACTIVE</span>
     </div>
 
-    <!-- 檔位切換按鈕 -->
-    <div class="engine-tabs">
-        <button class="tab-btn" id="tab-A" onclick="setEngineMode('A')">A檔 (強檢定)</button>
-        <button class="tab-btn active" id="tab-B" onclick="setEngineMode('B')">B檔 (敘事版)</button>
-        <button class="tab-btn" id="tab-C" onclick="setEngineMode('C')">C檔 (極簡版)</button>
-    </div>
-
-    <!-- 雷達 -->
     <div class="viewport">
-        <div class="radar-grid"></div>
-        <div class="radar-pulse"></div>
-        <div class="radar-pulse pulse-2"></div>
-        <div style="position: absolute; top: 8px; left: 8px; font-size: 9px; color: rgba(51,255,51,0.5);" id="radar-loc">LOC: CENTRAL-SCAR</div>
+        <div class="radar-pulse"></div><div class="radar-pulse pulse-2"></div>
+        <div style="position: absolute; top: 8px; left: 8px; font-size: 9px;" id="radar-loc">LOC: 掃描中...</div>
     </div>
 
-    <!-- 狀態塊 -->
     <div class="status-block" id="status-block" style="display: none;">
-        <div class="status-row">
-            <span>[版/檔]: v3.8 / <span id="sb-mode">B</span></span>
-            <span>[TICK]: <span id="sb-tick">0</span></span>
-            <span>[時段]: <span id="sb-td">TD 0 (晨)</span></span>
-            <span>[PR]: <span id="sb-pr">27</span></span>
-        </div>
-        <div class="status-row">
-            <span>[PILOT]: <span id="sb-pilot">--</span></span>
-            <span>[MECHA]: <span id="sb-mecha">--</span></span>
-            <span>[位置]: <span id="sb-loc">錨點站</span></span>
-        </div>
-        <div class="status-row">
-            <span>[氣血/AP]: <span id="sb-ap">100%</span></span>
-            <span>[能源]: <span id="sb-energy">滿載</span></span>
-            <span>[ Credits ]: <span id="sb-cash" style="color:var(--amber);">0</span></span>
-            <span>[聲望]: <span id="sb-rep">10</span></span>
-        </div>
+        <div class="status-row"><span>[PILOT]: <span id="sb-pilot">--</span></span><span>[MECHA]: <span id="sb-mecha">--</span></span></div>
+        <div class="status-row"><span>[位置]: <span id="sb-loc" style="color:var(--amber);">錨點站</span></span><span>[氣候]: <span id="sb-env">穩定</span></span></div>
+        <div class="status-row"><span>[ Credits ]: <span id="sb-cash">0</span></span><span>[聲望]: <span id="sb-rep">10</span></span></div>
     </div>
 
-    <!-- 故事螢幕 -->
     <div class="story-screen" id="story-screen">
-        <div class="story-text" id="story-content">>>> [HEPHAESTUS SYSTEM INITIALIZED]
->>> LOADING WORLD PACKAGE: 赫菲斯托斯鏽蝕大陸
->>> [286-BOOT SEQUENCE SUCCESSFUL]
-
-歡迎來到赫菲斯托斯。這是一顆直徑為地球 1.7 倍、表面被單一鏽蝕大陸覆蓋的荒蕪世界。
-在踏上鋼鐵與鮮血的道路前，請先加載您的**出身設定**。</div>
+        <div id="story-content">>>> [BATTLEFIELD DB LOADED]
+正在載入赫菲斯托斯鏽蝕大陸地形矩陣...
+請先登入鐵馭作戰設定。</div>
     </div>
 
-    <!-- 行動選項 -->
     <div class="option-container" id="options-box"></div>
 </div>
 
 <script>
-    const rTable = [12, 5, 19, 3, 8, 14, 0, 17, 9, 2, 11, 16, 6, 13, 1, 18, 4, 10, 15, 7, 3, 16, 8, 19, 1, 12, 6, 0, 14, 9, 17, 4, 11, 2, 15, 7, 13, 18, 5, 10, 9, 0, 15, 6, 18, 2, 13, 7, 19, 11, 4, 16, 1, 14, 8, 3, 17, 5, 12, 10];
-    
-    const origins = {
-        "FA": { name: "聯邦A：天梯退學生", mecha: "隼訓練型", cash: 12000, desc: "速度+15%、裝甲-10%。擁有空感學院人脈，但沙塵故障率+10%，無法接取帝國基礎任務。" },
-        "FB": { name: "聯邦B：企業子弟", mecha: "稜鏡青年版", cash: 15000, desc: "索敵+15%、火力-5%。具備高階神經親和，但裝甲成長緩慢，帝國物價+20%。" },
-        "FC": { name: "聯邦C：移民二代", mecha: "鴿子改裝型", cash: 8000, desc: "全平均，經驗獲取+5%。改裝續航+30%，無致命劣勢，推薦新手。" },
-        "DA": { name: "帝國A：礦坑之子", mecha: "蠍尾礦山型", cash: 5000, desc: "裝甲+15%、速度-10%。具備「礦工之肺」免疫沙暴氣候，推薦新手。" },
-        "DB": { name: "帝國B：士官家族", mecha: "工兵帝國型", cash: 7000, desc: "火力+10%、裝甲+5%、索敵-10%、速度-5%。每月軍部500補貼，具備戰術紀律。" },
-        "DC": { name: "帝國C：邊境逃兵", mecha: "鼠改裝型", cash: 3000, desc: "速度+10%、索敵+5%、裝甲-10%。匿蹤+20%，需偽造通行證。" },
-        "NA": { name: "中立A：拾荒兒", mecha: "街犬型", cash: 4000, desc: "索敵+10%、速度+5%、火力-10%。黑市交易-20%，情報+25%。" },
-        "NB": { name: "中立B：契約之子", mecha: "赤鳶標準型", cash: 10000, desc: "全平均。起始公會聲望+20，任務基礎報酬+10%，最易上手。" }
-    };
-
-    // 激烈的動態戰鬥文本資料庫 (拼裝用)
-    const combatTexts = {
-        success: {
-            opening: [
-                "「就是現在！」你將操縱桿一推到底，輔助姿態噴嘴瞬間噴出刺眼火流！",
-                "反應爐發出高頻嘯叫，火控鎖定框在瘋狂顫抖後瞬間收緊！",
-                "你猛烈扣下扳機，主武器的鎢合金彈藥如雷霆般傾瀉而出！"
-            ],
-            impact: [
-                "30mm 機械砲無情地犁過敵機前裝甲，當場撕開一道兩公尺長的焦黑裂口！",
-                "高熱的能量光束直接熔穿了敵方「重裝獵犬」的塔盾，合金熔液四處飛濺！",
-                "彈雨在地面上拉出一道筆直的煙塵軌跡，精準粉碎了敵機的右側液壓關節！"
-            ],
-            ending: [
-                "「目標受重創！核心反應爐訊號開始衰退！」系統女聲冰冷地報告。",
-                "敵機在一片刺目的金屬撕裂聲中爆出大片火花，踉蹌退後！",
-                "黑煙與沸騰的冷卻液噴灑在鐵鏽沙塵中，這是一次教科書般的完美打擊！"
-            ]
+    // 【純文字 JSON 區塊：核心戰場資料庫】
+    const battlefieldsDB = {
+        "BF_04": {
+            name: "風蝕刀鋒峽谷 (風之墓)",
+            region: "中央蝕痕北段",
+            desc: "兩側岩壁刀片狀高600公尺，風速常年80公里。陣風來襲時，輕型機不開推進會被直接吹走。地面共振碎石，腳步聲放大十倍。",
+            rules: "【微量加成】：攻方攻擊微升(俯擊重力)。守方防禦微降(無掩體)。雙方速度微降(強風)。索敵改震動聲學，光學微降。",
+            hazard: "強風干擾"
         },
-        failure: {
-            opening: [
-                "狂暴的沙暴瞬間遮蔽了主光學感測器，刺耳的雷達干擾音在駕駛艙迴盪！",
-                "你試圖強行修正彈道，但跨企業拼裝的火控重寫在這一瞬間出現了零點幾秒的鬼影延遲！",
-                "敵機突然發動反擊，兩枚重型火箭彈拉著致命的尾煙狂暴襲來！"
-            ],
-            impact: [
-                "猛烈的衝擊波在大力撞擊裝甲板，刺耳的「結構損耗」警報瞬間響徹全艙！",
-                "高能熱射線斜斜掠過你的駕駛艙外殼，高熱導致外部裝甲板大面積汽化！",
-                "彈雨擦著你的背包炸開，強大的震盪讓你整個人狠狠撞在安全束縛帶上！"
-            ],
-            ending: [
-                "「警告：AP裝甲完整度下降！核心溫度攀升！」警報紅光將你的臉照得通紅。",
-                "機體在一片刺耳的警報聲中狼狽滑行數十公尺才穩住姿態。",
-                "在劇烈震動與高熱中，你被迫啟動應急噴煙，拉開作戰距離！"
-            ]
+        "BF_09": {
+            name: "硫磺鹽沼觀測站 (白盲地)",
+            region: "中央蝕痕南段",
+            desc: "鹽殼厚2公尺可承重重型，但下方是硫磺泥漿。鹽面反光90%，白天光學全白，熱成像在白天高溫下完全失效。全赫菲斯托斯最考驗索敵的地形。",
+            rules: "【微量加成】：雙方光學索敵大幅微降。熱成像失效。守方情報微升(高塔)，防禦微降(鹽磚脆)。攻方攻擊微升(利用反光致盲)。",
+            hazard: "極端高溫/致盲"
+        },
+        "BF_11": {
+            name: "血砧隘口 (唯一北上之路)",
+            region: "中央蝕痕西南",
+            desc: "寬僅400公尺底部硬化河床，兩側垂直岩壁全是舊鑿射擊孔與滾石陷阱。是重型機進帝國腹地的唯一通道，擁擠且無退路。",
+            rules: "【微量加成】：守方防禦攻擊大幅微升(隘口預設射界)。攻方速度大幅微降(擁擠/拒馬)。雙方索敵微降(岩壁遮蔽)。",
+            hazard: "極度擁擠/無退路"
         }
     };
 
-    let player = {
-        name: "",
-        origin: null,
-        mecha: "",
-        cash: 0,
-        ammo: "充足",
-        energy: "滿載",
-        rep: 10,
-        tick: 0,
-        td: 0,
-        pr: 27,
-        mode: "B",
-        location: "錨點站"
+    const origins = {
+        "FA": { name: "聯邦A：天梯退學生", mecha: "隼訓練型", cash: 12000, desc: "速度+15%、裝甲-10%。沙塵故障率+10%。" },
+        "DA": { name: "帝國A：礦坑之子", mecha: "蠍尾礦山型", cash: 5000, desc: "裝甲+15%、速度-10%。礦工之肺免疫沙暴氣候。" },
+        "NA": { name: "中立A：拾荒兒", mecha: "街犬型", cash: 4000, desc: "索敵+10%、速度+5%、火力-10%。情報+25%。" }
     };
+
+    let player = { name: "", origin: null, mecha: "", cash: 0, rep: 10, loc: "錨點站" };
 
     function writeStory(text, append=false) {
-        const screen = document.getElementById('story-content');
-        if (append) {
-            screen.innerHTML += "\n\n" + text;
-        } else {
-            screen.innerHTML = text;
-        }
+        const sc = document.getElementById('story-content');
+        sc.innerHTML = append ? sc.innerHTML + "\n\n" + text : text;
         document.getElementById('story-screen').scrollTop = document.getElementById('story-screen').scrollHeight;
     }
 
-    function setEngineMode(mode) {
-        player.mode = mode;
-        document.getElementById('sb-mode').innerText = mode;
-        document.getElementById('engine-live').innerText = `● ${mode}-MODE ACTIVE`;
-        
-        document.getElementById('tab-A').className = "tab-btn" + (mode === 'A' ? " active" : "");
-        document.getElementById('tab-B').className = "tab-btn" + (mode === 'B' ? " active" : "");
-        document.getElementById('tab-C').className = "tab-btn" + (mode === 'C' ? " active" : "");
-        
-        saveGame();
-        writeStory(`>>> [ENGINE_MSG]: 檔位切換至 ${mode} 檔。`, true);
-    }
-
-    function rollCheck(modifier = 3, forceDisadvantage = false, forceAdvantage = false) {
-        player.pr = (player.pr + modifier) % 60;
-        let val1 = rTable[player.pr];
-        
-        if (forceDisadvantage) {
-            let nextPr = (player.pr + 5) % 60;
-            let val2 = rTable[nextPr];
-            let finalVal = Math.min(val1, val2);
-            return { val: finalVal, type: "弱勢(取低)", detail: `[R${player.pr}]:${val1} & [R${nextPr}]:${val2} -> ${finalVal}` };
-        } else if (forceAdvantage) {
-            let nextPr = (player.pr + 5) % 60;
-            let val2 = rTable[nextPr];
-            let finalVal = Math.max(val1, val2);
-            return { val: finalVal, type: "強勢(取高)", detail: `[R${player.pr}]:${val1} & [R${nextPr}]:${val2} -> ${finalVal}` };
-        }
-        
-        return { val: val1, type: "標準", detail: `[R${player.pr}]:${val1}` };
-    }
-
-    function advanceTime(ticksConsumed) {
-        player.tick += ticksConsumed;
-        player.td = Math.floor(player.tick / 3) % 12;
-        updateUI();
-    }
-
-    function getTdName() {
-        const h = player.td;
-        if (h >= 0 && h <= 2) return `TD ${h} (晨)`;
-        if (h >= 3 && h <= 5) return `TD ${h} (午)`;
-        if (h >= 6 && h <= 8) return `TD ${h} (夕)`;
-        return `TD ${h} (夜)`;
-    }
-
-    function loadGame() {
-        const savedData = localStorage.getItem('mecha_storm_save_v1');
-        if (savedData) {
-            player = JSON.parse(savedData);
-            setEngineMode(player.mode || "B");
-            document.getElementById('status-block').style.display = "block";
-            updateUI();
-            showLobby();
-            writeStory(`>>> [ENGINE_LOAD]: 讀取存檔成功。歡迎回來，鐵馭 ${player.name}。`);
-        } else {
-            initOriginSelection();
-        }
-    }
-
-    function saveGame() {
-        localStorage.setItem('mecha_storm_save_v1', JSON.stringify(player));
-    }
-
-    function updateUI() {
-        document.getElementById('sb-tick').innerText = player.tick;
-        document.getElementById('sb-td').innerText = getTdName();
-        document.getElementById('sb-pr').innerText = player.pr;
-        document.getElementById('sb-pilot').innerText = player.name;
-        document.getElementById('sb-mecha').innerText = player.mecha;
-        document.getElementById('sb-loc').innerText = player.location;
-        document.getElementById('sb-cash').innerText = player.cash;
-        document.getElementById('sb-rep').innerText = player.rep;
-        document.getElementById('radar-loc').innerText = `LOC: ${player.location.toUpperCase()}`;
-    }
-
-    function initOriginSelection() {
-        const box = document.getElementById('options-box');
-        box.innerHTML = "";
+    function init() {
+        const box = document.getElementById('options-box'); box.innerHTML = "";
         for (let key in origins) {
-            let btn = document.createElement('button');
-            btn.className = "option-btn";
-            btn.innerHTML = `⚙️ LOAD ${origins[key].name} (MECHA: ${origins[key].mecha})`;
-            btn.onclick = () => confirmOrigin(key);
-            box.appendChild(btn);
+            let btn = document.createElement('button'); btn.className = "option-btn";
+            btn.innerHTML = `⚙️ LOAD ${origins[key].name} (${origins[key].mecha})`;
+            btn.onclick = () => confirmOrigin(key); box.appendChild(btn);
         }
     }
 
     function confirmOrigin(key) {
-        player.origin = origins[key];
-        player.mecha = origins[key].mecha;
-        player.cash = origins[key].cash;
-        
-        let pilotName = prompt("請登入您的鐵馭代號 (Pilot Name):", "Raven");
-        if (!pilotName || pilotName.trim() === "") pilotName = "Pilot_No_Name";
-        player.name = pilotName;
-
+        player.origin = origins[key]; player.mecha = origins[key].mecha; player.cash = origins[key].cash;
+        player.name = prompt("輸入鐵馭代號:", "Raven") || "Unknown";
         document.getElementById('status-block').style.display = "block";
-        updateUI();
-        saveGame();
-        showLobby();
+        updateUI(); showLobby();
+    }
+
+    function updateUI(env = "穩定") {
+        document.getElementById('sb-pilot').innerText = player.name;
+        document.getElementById('sb-mecha').innerText = player.mecha;
+        document.getElementById('sb-loc').innerText = player.loc;
+        document.getElementById('sb-env').innerText = env;
+        document.getElementById('sb-cash').innerText = player.cash;
+        document.getElementById('sb-rep').innerText = player.rep;
+        document.getElementById('radar-loc').innerText = `LOC: ${player.loc}`;
     }
 
     function showLobby() {
-        player.location = "錨點站";
-        updateUI();
-        writeStory(`>>> 【戰術神經連結正常】
-鐵馭：${player.name} | 機體：${player.mecha}
-位置：${player.location} (自由傭兵市場)
-特徵：${player.origin ? player.origin.desc : "作戰檔案讀取中"}
-
-【世界包摘要】
-界：地球 1.7 倍鏽蝕大陸，中央蝕痕切開東西兩大帝國[span_10](start_span)[span_10](end_span)。
-律：藍證進東免檢、紅證進西免檢。沙暴會降低所有人一級索敵[span_11](start_span)[span_11](end_span)。
-人：鋼鐵契約公會(仲介)、辰曜(高精能量)、岩心(厚裝四足)。
-
-終端螢幕上刷新了三個最新的見習合約（任務）：`);
-
+        player.loc = "錨點站"; updateUI();
+        writeStory(`>>> 【公會終端連線】\n目前位置：${player.loc}\n系統已根據最新戰場數據生成見習合約，請選擇部署地點：`);
+        
         const box = document.getElementById('options-box');
         box.innerHTML = `
-            <button class="option-btn" onclick="startMission(1)">📄 [合約 A] 遺蹟護衛 (輕/中型) - 風險: 低 | 報酬: 2500</button>
-            <button class="option-btn" onclick="startMission(2)">📄 [合約 B] 鏽蝕礦道清理 (中/重型) - 風險: 中 | 報酬: 4500</button>
-            <button class="option-btn" onclick="startMission(3)">📄 [合約 C] 東方聯邦偵察網干擾 (限輕型) - 風險: 低 | 報酬: 3000</button>
-            <button class="option-btn" onclick="goGarage()">🛠️ 前往整備聖殿 (維修與調整武裝)</button>
-            <button class="option-btn" style="color:var(--danger-red);" onclick="resetData()">💥 刪除存檔，重新開始</button>
+            <button class="option-btn" onclick="deploy('BF_04')">📍 [部署] 04號戰場：風蝕刀鋒峽谷 (伏擊/反伏擊)</button>
+            <button class="option-btn" onclick="deploy('BF_09')">📍 [部署] 09號戰場：硫磺鹽沼觀測站 (狙擊/反盲)</button>
+            <button class="option-btn" onclick="deploy('BF_11')">📍 [部署] 11號戰場：血砧隘口 (陣地絞肉機)</button>
+            <button class="option-btn" style="color:var(--amber);" onclick="location.reload()">🔄 重啟終端 (換機體)</button>
         `;
     }
 
-    function startMission(mId) {
-        advanceTime(1);
+    function deploy(bfId) {
+        const bf = battlefieldsDB[bfId];
+        player.loc = bf.name; updateUI(bf.hazard);
         
-        if (mId === 1) {
-            player.location = "中央蝕痕-舊城區";
-            updateUI();
-            writeStory(`>>> 【合約啟動：遺蹟護衛】
-你護送一支泛亞重工考古隊深入「中央蝕痕」舊城區。
-天天空沙暴狂暴（沙暴天氣）。雷達警報響起！兩台自由旅團掠奪者正在快速逼近！
-【判定環境】：由於突發沙暴，非岩心機體索敵降級，此戰判定為 [弱勢]！`);
-            
-            let isImmune = player.origin && player.origin.name.includes("帝國A");
-            
-            const box = document.getElementById('options-box');
-            box.innerHTML = `
-                <button class="option-btn" onclick="executeCombat(true, 2500, ${isImmune ? 'false' : 'true'}, false)">💥 開火正面壓制 (R表強弱檢定)</button>
-                <button class="option-btn" onclick="executeCombat(false, 0, false, false)">💨 強行拉扯撤退 (標準速度檢定)</button>
-            `;
-        } else if (mId === 2) {
-            player.location = "廢棄地熱礦道";
-            updateUI();
-            writeStory(`>>> 【合約啟動：鏽蝕礦道清理】
-你深入狹窄礦道，遭遇三台自動防衛砲塔。空間窄小，溫度暴升！
-此戰環境：無規避空間，裝甲優勢機體（裝甲+15%）可獲得 [強勢] 判定。`);
+        writeStory(`>>> 【戰場空投確認】\n抵達座標：${bf.region}\n\n[地形觀測報告]：\n${bf.desc}\n\n[環境克制規則]：\n${bf.rules}\n\n雷達探測到敵方武裝機甲逼近！`);
 
-            let hasArmorAdv = player.origin && player.origin.name.includes("帝國A");
+        const isHeavy = player.mecha.includes("蠍尾"); // 簡單判斷裝甲優勢
+        const isFast = player.mecha.includes("隼"); // 簡單判斷速度優勢
 
-            const box = document.getElementById('options-box');
-            box.innerHTML = `
-                <button class="option-btn" onclick="executeCombat(true, 4500, false, ${hasArmorAdv ? 'true' : 'false'})">🛡️ 頂著裝甲強突摧毀</button>
-                <button class="option-btn" onclick="showLobby()">⚠️ 釋放干擾霧，放棄合約撤退</button>
-            `;
-        } else if (mId === 3) {
-            if (player.origin && player.origin.name && player.origin.name.includes("聯邦A")) {
-                alert("因【天梯退學生】背景人脈限制，你無法對聯邦偵察網下手！");
-                return;
-            }
-            player.location = "邊境緩衝帶";
-            updateUI();
-            writeStory(`>>> 【合約啟動：偵察網干擾】
-你侵入東方聯邦邊境。聯邦輕巡洋艦正以雷達進行大範圍網格照射！
-如果你擁有高機動優勢（速度+15%），此處規避可獲得 [強勢] 判定。`);
-
-            let hasSpeedAdv = player.origin && player.origin.name.includes("聯邦A");
-
-            const box = document.getElementById('options-box');
-            box.innerHTML = `
-                <button class="option-btn" onclick="executeCombat(true, 3000, false, ${hasSpeedAdv ? 'true' : 'false'})">📡 電子反制強行破壞</button>
-                <button class="option-btn" onclick="showLobby()">💨 安全撤離</button>
-            `;
-        }
+        const box = document.getElementById('options-box');
+        box.innerHTML = `
+            <button class="option-btn" onclick="combat(true, ${isHeavy})">💥 正面強攻 (依賴裝甲與火力判定)</button>
+            <button class="option-btn" onclick="combat(false, ${isFast})">💨 利用地形機動拉扯 (依賴速度判定)</button>
+            <button class="option-btn" onclick="showLobby()">⚠️ 取消合約，撤退回錨點站</button>
+        `;
     }
 
-    // 隨機從數據庫拼裝激烈戰鬥台詞
-    function generateBattleText(isSuccess) {
-        const pool = isSuccess ? combatTexts.success : combatTexts.failure;
-        const op = pool.opening[Math.floor(Math.random() * pool.opening.length)];
-        const imp = pool.impact[Math.floor(Math.random() * pool.impact.length)];
-        const ed = pool.ending[Math.floor(Math.random() * pool.ending.length)];
-        return `\n${op}\n${imp}\n${ed}`;
-    }
+    function combat(isAggressive, hasAdvantage) {
+        // 模擬 R表 雙骰邏輯 (有優勢取高，否則標準)
+        let roll1 = Math.floor(Math.random() * 20);
+        let roll2 = Math.floor(Math.random() * 20);
+        let finalRoll = hasAdvantage ? Math.max(roll1, roll2) : roll1;
+        let success = finalRoll >= 10;
 
-    function executeCombat(isFight, reward, isDisadv, isAdv) {
-        advanceTime(2);
-        
-        let res = rollCheck(7, isDisadv, isAdv);
-        let success = res.val > 8;
+        document.getElementById('terminal-body').classList.add('shake');
+        setTimeout(() => document.getElementById('terminal-body').classList.remove('shake'), 300);
 
-        // 受擊或開火時，觸發整個網頁震動效果！
-        const terminal = document.getElementById('terminal-body');
-        terminal.classList.add('shake');
-        setTimeout(() => terminal.classList.remove('shake'), 300);
-
-        let report = `>>> 【戰術判定結果】\n`;
-        
-        if (player.mode === 'A') {
-            report += `[系統檢定 - A檔]：環境判定為 [${isDisadv ? '弱勢' : (isAdv ? '強勢' : '標準')}]\n`;
-            report += `檢定細節：${res.detail} (安全臨界值: >8)\n`;
-        } else if (player.mode === 'B') {
-            report += `[系統檢定 - B檔]：進行${res.type}檢定──(${success ? '大成功' : '失敗/受挫'})\n`;
-        } else {
-            report += `[C檔極簡] 檢定:${success ? 'SUCCESS' : 'DAMAGE'}\n`;
-        }
-
-        // 動態注入激烈的戰鬥過程！
-        report += generateBattleText(success);
+        let rpt = `>>> 【戰術判定】\n環境檢定骰出: [${roll1}] ${hasAdvantage ? `及 [${roll2}] (優勢取高)` : ''} -> 最終值: ${finalRoll}\n\n`;
 
         if (success) {
-            player.cash += reward;
-            player.rep += 5;
-            report += `\n\n[合約結算] 任務完成：獲得 +${reward} Credits，聲望 +5。`;
+            player.cash += 3500; player.rep += 5;
+            rpt += `你完美利用了地形優勢！敵機在複雜的物理環境中失去平衡，被你精準擊毀核心。\n獲得報酬: +3500 Credits`;
         } else {
-            let penalty = Math.floor(reward * 0.3);
-            player.cash = Math.max(0, player.cash - penalty);
-            report += `\n\n[合約結算] 機體大面積受損！損失維修費用：-${penalty} Credits。`;
+            let penalty = 1200; player.cash = Math.max(0, player.cash - penalty);
+            rpt += `戰場環境極度險惡！你的機體受到極端氣候與地形限制，裝甲嚴重受損，被迫啟動緊急脫離。\n維修費: -${penalty} Credits`;
         }
 
-        writeStory(report);
-        updateUI();
-        saveGame();
-
-        const box = document.getElementById('options-box');
-        box.innerHTML = `<button class="option-btn" onclick="showLobby()">🔄 返回公會大廳接取新合約</button>`;
+        writeStory(rpt); updateUI();
+        document.getElementById('options-box').innerHTML = `<button class="option-btn" onclick="showLobby()">🔄 返回公會大廳</button>`;
     }
 
-    function goGarage() {
-        player.location = "整備聖殿-3號工房";
-        updateUI();
-        writeStory(`>>> 【整備聖殿 (聖殿級工房)】
-高大的機械吊臂正在緩緩移動，為你的【${player.mecha}】進行維護。
-在這裡，你可以使用資金來保養零件、重新裝填彈藥。`);
-
-        const box = document.getElementById('options-box');
-        box.innerHTML = `
-            <button class="option-btn" onclick="buyService('repair', 1000)">🔧 全機體大保養與奈米維修 (-1000 Credits)</button>
-            <button class="option-btn" onclick="buyService('ammo', 500)">🔋 彈藥與能量槽滿載重填 (-500 Credits)</button>
-            <button class="option-btn" onclick="showLobby()">⬅️ 離開整備室，返回公會大廳</button>
-        `;
-    }
-
-    function buyService(type, cost) {
-        if (player.cash < cost) {
-            alert("資金不足！");
-            return;
-        }
-        player.cash -= cost;
-        if (type === 'repair') {
-            writeStory(`>>> 【整備完畢】 吊臂完成校準，你的外部裝甲結構完全重組。`);
-        } else {
-            writeStory(`>>> 【補給完畢】 彈藥艙與反應爐已重新充能完畢。`);
-        }
-        updateUI();
-        saveGame();
-        goGarage();
-    }
-
-    function resetData() {
-        if (confirm("確認要清空全部作戰數據，刪除存檔重新開始嗎？")) {
-            localStorage.removeItem('mecha_storm_save_v1');
-            location.reload();
-        }
-    }
-
-    window.onload = loadGame;
+    window.onload = init;
 </script>
-
 </body>
 </html>
